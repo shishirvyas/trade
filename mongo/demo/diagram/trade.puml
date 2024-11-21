@@ -1,0 +1,72 @@
+@startuml
+
+package "com.srd.demo.entity" {
+  class Trade {
+    +String tradeId
+    +int version
+    +String counterPartyId
+    +LocalDate maturityDate
+    +LocalDate createdDate
+    +boolean expired
+    +void expireTrade()
+  }
+
+  class TradeMongo {
+    +String id
+    +int version
+    +String counterPartyId
+    +LocalDate maturityDate
+  }
+
+  class TradeSql {
+    +String tradeId
+    +int version
+    +String counterPartyId
+    +LocalDate maturityDate
+    +LocalDate createdDate
+    +boolean expired
+  }
+}
+
+package "com.srd.demo.service" {
+  class TradeSqlService {
+    +void saveTradeSql(Trade trade)
+    +void markExpiredTrades()
+  }
+
+  class TradeMongoService {
+    +void saveTrade(TradeMongo tradeMongo)
+  }
+}
+
+package "com.srd.demo.kafka.controller" {
+  class KafkaController {
+    +String sendTrade(Trade trade)
+    +String convertTradeToMessage(Trade trade)
+  }
+}
+
+package "com.srd.demo.kafka.producer" {
+  class MessageProducer {
+    +void sendMessage(String topic, String message)
+  }
+}
+
+package "com.srd.demo.kafka.consumer" {
+  class MessageConsumer {
+    +void listen(String message)
+    +Trade parseMessageToTrade(String message)
+    +TradeMongo convertToTradeMongo(Trade trade)
+  }
+}
+
+Trade --|> TradeMongo : Inherits
+Trade --|> TradeSql : Inherits
+
+TradeSqlService --> TradeSql : interacts with
+TradeMongoService --> TradeMongo : interacts with
+KafkaController --> Trade : handles
+MessageProducer --> KafkaController : sends messages to Kafka
+MessageConsumer --> KafkaController : consumes messages from Kafka
+
+@enduml
